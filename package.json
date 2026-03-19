@@ -1,0 +1,88 @@
+{
+  "name": "claude-session-browser",
+  "displayName": "Claude Session Browser",
+  "description": "Browse and resume Claude Code sessions across all projects",
+  "version": "0.1.0",
+  "publisher": "epavlenko",
+  "license": "MIT",
+  "icon": "resources/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/epavlenko/claude-session-browser"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "keywords": ["claude", "claude-code", "sessions", "anthropic"],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "claude-sessions",
+          "title": "Claude Sessions",
+          "icon": "resources/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "claude-sessions": [
+        {
+          "type": "webview",
+          "id": "claudeSessionList",
+          "name": "Sessions"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "claudeSessions.refresh",
+        "title": "Refresh Sessions",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "claudeSessions.toggleViewMode",
+        "title": "Toggle View: All / By Project / Current",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "claudeSessions.toggleExpandCollapse",
+        "title": "Expand/Collapse All",
+        "icon": "$(expand-all)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claudeSessions.toggleViewMode",
+          "when": "view == claudeSessionList",
+          "group": "navigation@1"
+        },
+        {
+          "command": "claudeSessions.toggleExpandCollapse",
+          "when": "view == claudeSessionList && claudeSessions.viewMode == byProject",
+          "group": "navigation@2"
+        },
+        {
+          "command": "claudeSessions.refresh",
+          "when": "view == claudeSessionList",
+          "group": "navigation@3"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "npx @vscode/vsce package --no-dependencies"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "sharp": "^0.34.5",
+    "typescript": "^5.3.0"
+  }
+}
