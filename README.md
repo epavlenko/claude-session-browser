@@ -36,13 +36,20 @@ By reverse-engineering the Claude Code extension (`extension.js` bundle), we fou
 - Session metadata: `customTitle` > `aiTitle` > first user message for display title
 - Running processes visible via `ps aux | grep claude` with `--resume <session-id>` in args
 
-## Problems we hit
+## The unsolved problem: VS Code terminal management
 
-- **TreeView limitations**: VS Code TreeView API doesn't support custom font sizes, colors, or multi-line items. Had to switch to WebView for the UI we wanted.
-- **Icon rendering**: `qlmanage` (macOS) produced blurry SVG-to-PNG conversion. Switched to `sharp`.
-- **Search focus loss**: Updating `webview.html` on every search keystroke destroyed the input focus. Fixed by using `postMessage` to update only the session list div.
-- **Session format is undocumented**: JSONL structure was reverse-engineered and could break on any Claude Code update.
-- **Cursor didn't show the extension initially**: required full app restart (Cmd+Q), not just Reload Window.
+The biggest blocker we couldn't fully solve is managing Claude Code terminals from an extension.
+
+**What we wanted**: click a session in the sidebar, it opens in a terminal tab (like the official Claude Code extension does). Track which sessions are open, highlight the active one, restore them after editor restart.
+
+**What VS Code gives you**:
+- `createTerminal()` + `sendText()` — that's it. You can create a terminal and type into it, but you can't read its output, detect if the process inside exited, or know its current state.
+- `onDidCloseTerminal` fires when the terminal tab is closed, not when the process inside finishes. A Claude session that completed still looks "open" to the extension.
+- No terminal output API. We can't tell if Claude is thinking, waiting for input, or showing an error. The status indicators (active/awaiting review) rely on `ps aux` process scanning as a workaround — fragile and OS-specific.
+- Terminal restore on editor restart is unreliable. VS Code/Cursor may or may not restore terminal tabs. We save open session IDs to `workspaceState` and try to match restored terminals by name, but it's a race condition with timing hacks (`setTimeout 1500ms`).
+- No way to rename a terminal after creation. If a user renames a session, we can't update the terminal tab title — we have to orphan it and create a new one on next click.
+
+This is a fundamental limitation of the VS Code Extension API. The official Claude Code extension works around it by using its own WebView-based terminal (not `vscode.Terminal`), which gives full control over I/O. Building that would be reimplementing a terminal emulator — far beyond the scope of a session browser.
 
 ## Why we stopped
 
